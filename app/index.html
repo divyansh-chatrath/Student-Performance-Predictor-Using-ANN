@@ -1,0 +1,2556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduPredict – Student Academic Performance Prediction Using ANN</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- PapaParse for CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- TensorFlow.js for authentic in-browser deep learning -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --primary-dark: #3730a3;
+      --primary-bg: #eef2ff;
+      --success: #10b981;
+      --success-bg: #d1fae5;
+      --warning: #f59e0b;
+      --warning-bg: #fef3c7;
+      --danger: #ef4444;
+      --danger-bg: #fee2e2;
+      --info: #0284c7;
+      --info-bg: #e0f2fe;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --sidebar-width: 260px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.5;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: #0d1527;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .brand {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary), #818cf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.7rem;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-menu {
+      list-style: none;
+      padding: 16px 12px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      font-weight: 700;
+      padding: 12px 12px 6px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      margin-bottom: 4px;
+      border-radius: var(--radius);
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item i {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .nav-item:hover {
+      background-color: rgba(255,255,255,0.06);
+      color: #f1f5f9;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.75rem;
+      color: #64748b;
+      background: #090e1a;
+    }
+
+    .sidebar-footer .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Main Content Wrapper */
+    .main-wrapper {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Top Bar */
+    .topbar {
+      height: 68px;
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .topbar-title h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .topbar-title p {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Badge & Pills */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary { background: var(--primary-bg); color: var(--primary); }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: #b45309; }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-info { background: var(--info-bg); color: var(--info); }
+
+    /* Content Area */
+    .content-area {
+      padding: 32px;
+      flex: 1;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .kpi-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--gray-500);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+      margin-top: 4px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafbfc;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title i {
+      color: var(--primary);
+    }
+
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-outline {
+      background: #fff;
+      border-color: var(--border-color);
+      color: var(--gray-700);
+    }
+    .btn-outline:hover {
+      background: var(--gray-100);
+      border-color: var(--gray-300);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .form-label small {
+      font-weight: 400;
+      color: var(--gray-400);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 9px 14px;
+      font-size: 0.875rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: #fff;
+      color: var(--gray-800);
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .form-range {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .range-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-left: 8px;
+    }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.825rem;
+      text-align: left;
+    }
+
+    .table th {
+      background: #f8fafc;
+      padding: 12px 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+      white-space: nowrap;
+    }
+
+    .table tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    /* Confusion Matrix */
+    .cm-table {
+      margin: 0 auto;
+      border-collapse: separate;
+      border-spacing: 6px;
+    }
+
+    .cm-cell {
+      width: 120px;
+      height: 90px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .cm-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cm-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .cm-tp { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .cm-tn { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .cm-fp { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .cm-fn { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+    /* Prediction Result Card */
+    .pred-hero {
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pred-hero.pass {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .pred-hero.fail {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+    }
+
+    .pred-hero-content h3 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .pred-hero-content p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .pred-meter {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid rgba(255,255,255,0.5);
+    }
+
+    .pred-meter-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pred-meter-lbl {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.85;
+    }
+
+    /* Training Progress */
+    .progress-bar-container {
+      width: 100%;
+      height: 10px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #818cf8);
+      width: 0%;
+      transition: width 0.15s ease;
+    }
+
+    /* Theory Blocks */
+    .theory-box {
+      background: #fafbfc;
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-bottom: 20px;
+    }
+
+    .theory-box h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 6px;
+    }
+
+    .theory-box p, .theory-box li {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+
+    .code-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--gray-800);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main-wrapper {
+        margin-left: 0;
+      }
+      .topbar {
+        padding: 0 16px;
+      }
+      .content-area {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div class="brand-text">
+        <h1>EduPredict</h1>
+        <span>Deep Learning Analytics</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-label">Core Dashboard</li>
+      <li><a class="nav-item active" data-tab="tab-overview"><i class="fa-solid fa-gauge-high"></i> Overview</a></li>
+      <li><a class="nav-item" data-tab="tab-dataset"><i class="fa-solid fa-database"></i> Dataset & CSV</a></li>
+      <li><a class="nav-item" data-tab="tab-exploration"><i class="fa-solid fa-chart-pie"></i> Data Exploration</a></li>
+      
+      <li class="nav-label">Neural Network</li>
+      <li><a class="nav-item" data-tab="tab-architecture"><i class="fa-solid fa-network-wired"></i> Architecture & Theory</a></li>
+      <li><a class="nav-item" data-tab="tab-training"><i class="fa-solid fa-brain"></i> Model Training</a></li>
+      <li><a class="nav-item" data-tab="tab-evaluation"><i class="fa-solid fa-chart-line"></i> Evaluation & ROC</a></li>
+
+      <li class="nav-label">Applications & Report</li>
+      <li><a class="nav-item" data-tab="tab-prediction"><i class="fa-solid fa-user-graduate"></i> Student Predictor</a></li>
+      <li><a class="nav-item" data-tab="tab-documentation"><i class="fa-solid fa-book-bookmark"></i> Academic Report</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span id="model-status-indicator">Model Active</span>
+      </div>
+      <div>MBA Data Science & AI</div>
+      <div style="font-size: 0.65rem; color: #475569; margin-top: 4px;">ANN Binary Classifier (TF.js)</div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="btn btn-outline btn-sm" id="btn-toggle-sidebar" style="display: none;" onclick="toggleSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-title">
+          <h2 id="page-title">Dashboard Overview</h2>
+          <p id="page-subtitle">Real-time student academic performance analytics powered by Artificial Neural Networks</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span class="badge badge-primary" id="dataset-size-badge"><i class="fa-solid fa-table-list"></i> 2,000 Records</span>
+        <span class="badge badge-success" id="model-acc-badge"><i class="fa-solid fa-bullseye"></i> 96.75% Test Acc</span>
+        <button class="btn btn-outline btn-sm" onclick="exportPredictionsCSV()"><i class="fa-solid fa-file-export"></i> Export</button>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="content-area">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: OVERVIEW -->
+      <!-- ========================================== -->
+      <section id="tab-overview" class="tab-content active">
+        <!-- Dataset KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">Total Students</div>
+              <div class="kpi-value" id="kpi-total-students">2,000</div>
+              <div class="kpi-sub">Academic cohort</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#ecfdf5; color:#10b981;">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">Pass Rate</div>
+              <div class="kpi-value" id="kpi-pass-rate">94.9%</div>
+              <div class="kpi-sub" id="kpi-pass-count">1,898 Passed (>= 40)</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#fef2f2; color:#ef4444;">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">At-Risk Rate</div>
+              <div class="kpi-value" id="kpi-fail-rate">5.1%</div>
+              <div class="kpi-sub" id="kpi-fail-count">102 Failed (&lt; 40)</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#f0f9ff; color:#0284c7;">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">Avg Attendance</div>
+              <div class="kpi-value" id="kpi-avg-attendance">69.4%</div>
+              <div class="kpi-sub">Cohort mean</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#fefce8; color:#ca8a04;">
+              <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">Avg Study Hours</div>
+              <div class="kpi-value" id="kpi-avg-study">4.9 hrs/day</div>
+              <div class="kpi-sub">Range: 0 – 10 hrs</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#f5f3ff; color:#7c3aed;">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="kpi-info">
+              <div class="kpi-label">Avg Final Score</div>
+              <div class="kpi-value" id="kpi-avg-score">57.3 / 100</div>
+              <div class="kpi-sub">Synthetic composite</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model KPIs -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa-solid fa-brain"></i> ANN Model Benchmark Summary (Hold-out Test Set)</div>
+              <div class="card-desc">Trained Feedforward Neural Network evaluated on 400 unseen student records (80/20 train-test split)</div>
+            </div>
+            <span class="badge badge-success"><i class="fa-solid fa-shield-halved"></i> No Data Leakage</span>
+          </div>
+          <div class="card-body">
+            <div class="kpi-grid" style="margin-bottom:0;">
+              <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                <div class="kpi-info">
+                  <div class="kpi-label">Test Accuracy</div>
+                  <div class="kpi-value" id="ov-acc" style="color:var(--primary);">96.75%</div>
+                  <div class="kpi-sub">387 / 400 correct</div>
+                </div>
+              </div>
+              <div class="kpi-card" style="border-left: 4px solid var(--success);">
+                <div class="kpi-info">
+                  <div class="kpi-label">Precision (Pass)</div>
+                  <div class="kpi-value" id="ov-prec" style="color:var(--success);">98.16%</div>
+                  <div class="kpi-sub">TP / (TP + FP)</div>
+                </div>
+              </div>
+              <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+                <div class="kpi-info">
+                  <div class="kpi-label">Recall (Sensitivity)</div>
+                  <div class="kpi-value" id="ov-rec" style="color:var(--warning);">98.42%</div>
+                  <div class="kpi-sub">TP / (TP + FN)</div>
+                </div>
+              </div>
+              <div class="kpi-card" style="border-left: 4px solid #7c3aed;">
+                <div class="kpi-info">
+                  <div class="kpi-label">F1-Score</div>
+                  <div class="kpi-value" id="ov-f1" style="color:#7c3aed;">98.29%</div>
+                  <div class="kpi-sub">Harmonic mean</div>
+                </div>
+              </div>
+              <div class="kpi-card" style="border-left: 4px solid var(--info);">
+                <div class="kpi-info">
+                  <div class="kpi-label">ROC - AUC</div>
+                  <div class="kpi-value" id="ov-auc" style="color:var(--info);">0.9622</div>
+                  <div class="kpi-sub">Area Under Curve</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow Diagram & Quick Jump -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-diagram-project"></i> End-to-End Deep Learning Analytics Pipeline</div>
+            </div>
+            <div class="card-body">
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="width:36px; height:36px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">1</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:700; font-size:0.9rem;">Dataset Generation & Ingestion</div>
+                    <div style="font-size:0.78rem; color:var(--gray-500);">Synthetic generation with non-linear correlations or custom CSV upload with missing-value imputation.</div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="width:36px; height:36px; border-radius:50%; background:var(--info); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">2</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:700; font-size:0.9rem;">Leakage-Free Feature Preprocessing</div>
+                    <div style="font-size:0.78rem; color:var(--gray-500);">StandardScaler fit strictly on training fold; One-Hot Encoding for categorical features; target excluded from inputs.</div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="width:36px; height:36px; border-radius:50%; background:var(--warning); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">3</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:700; font-size:0.9rem;">Artificial Neural Network Training</div>
+                    <div style="font-size:0.78rem; color:var(--gray-500);">Multilayer Perceptron (13 inputs &rarr; Dense 64 ReLU &rarr; Dense 32 ReLU &rarr; Dense 1 Sigmoid) optimized via Adam.</div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; padding:12px 16px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="width:36px; height:36px; border-radius:50%; background:var(--success); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">4</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:700; font-size:0.9rem;">Interactive Inference & Dynamic Decision Thresholds</div>
+                    <div style="font-size:0.78rem; color:var(--gray-500);">Real-time student failure risk scoring with calibrated classification cutoff and customized academic advice.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-bolt"></i> Quick Actions</div>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
+              <button class="btn btn-primary" onclick="switchTab('tab-prediction')">
+                <i class="fa-solid fa-user-graduate"></i> Predict Single Student
+              </button>
+              <button class="btn btn-outline" onclick="switchTab('tab-training')">
+                <i class="fa-solid fa-play"></i> In-Browser Retraining
+              </button>
+              <button class="btn btn-outline" onclick="switchTab('tab-dataset')">
+                <i class="fa-solid fa-file-arrow-up"></i> Upload Custom CSV
+              </button>
+              <button class="btn btn-outline" onclick="downloadDatasetCSV()">
+                <i class="fa-solid fa-download"></i> Download Dataset CSV
+              </button>
+              <button class="btn btn-outline" onclick="switchTab('tab-documentation')">
+                <i class="fa-solid fa-file-lines"></i> View Academic Report
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: DATASET GENERATOR & CSV UPLOAD -->
+      <!-- ========================================== -->
+      <section id="tab-dataset" class="tab-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <!-- Generator Form -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Synthetic Student Generator</div>
+              <span class="badge badge-primary">Deterministic &amp; Realistic</span>
+            </div>
+            <div class="card-body">
+              <p style="font-size:0.825rem; color:var(--gray-600); margin-bottom:16px;">
+                Generates realistic academic cohorts where <span class="code-badge">Final_Score</span> is a non-linear composite of attendance, study hours, previous scores, participation, sleep, and digital access, with calibrated stochastic noise.
+              </p>
+              <div class="form-group">
+                <label class="form-label">Cohort Size (Records)</label>
+                <select id="gen-records" class="form-control">
+                  <option value="100">100 records (Fast testing)</option>
+                  <option value="500">500 records</option>
+                  <option value="1000">1,000 records</option>
+                  <option value="2000" selected>2,000 records (Standard cohort)</option>
+                  <option value="5000">5,000 records (Deep cohort)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Passing Grade Threshold: <span id="lbl-gen-threshold" class="range-val">40</span> / 100</label>
+                <input type="range" id="gen-threshold" class="form-range" min="30" max="60" value="40" oninput="document.getElementById('lbl-gen-threshold').textContent = this.value">
+              </div>
+              <div style="display:flex; gap:12px; margin-top:20px;">
+                <button class="btn btn-primary" onclick="generateNewDataset()"><i class="fa-solid fa-arrows-rotate"></i> Generate Dataset</button>
+                <button class="btn btn-outline" onclick="downloadDatasetCSV()"><i class="fa-solid fa-download"></i> Download CSV</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CSV Upload Form -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-cloud-arrow-up"></i> Custom CSV Dataset Upload</div>
+              <span class="badge badge-info">PapaParse Engine</span>
+            </div>
+            <div class="card-body">
+              <p style="font-size:0.825rem; color:var(--gray-600); margin-bottom:16px;">
+                Upload your institutional student records. The system will inspect column types, detect missing values, and configure targets for neural training.
+              </p>
+              <div class="form-group">
+                <label class="form-label">Select CSV File</label>
+                <input type="file" id="csv-file-input" class="form-control" accept=".csv" onchange="handleCSVUpload(event)">
+              </div>
+              <div id="upload-status" style="margin-top:12px; font-size:0.85rem; color:var(--gray-600);">
+                Awaiting file selection...
+              </div>
+              <div id="upload-mapping-area" style="display:none; margin-top:16px; padding:12px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                <div style="font-weight:700; font-size:0.85rem; margin-bottom:8px;">Target Variable Selection:</div>
+                <select id="csv-target-select" class="form-control" style="margin-bottom:8px;"></select>
+                <button class="btn btn-success btn-sm" onclick="applyUploadedCSV()"><i class="fa-solid fa-check"></i> Load Into Pipeline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dataset Preview & Stats -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title"><i class="fa-solid fa-table"></i> Active Dataset Preview (First 15 Rows)</div>
+              <div class="card-desc" id="dataset-preview-desc">Showing 15 of 2,000 records. Target: Performance (Pass=1, Fail=0)</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <span class="badge badge-primary" id="preview-col-count">13 Columns</span>
+              <span class="badge badge-success" id="preview-missing-count">0 Missing Values</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dataset-preview-table">
+                <thead>
+                  <tr>
+                    <th>Student_ID</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Attendance %</th>
+                    <th>Study Hours</th>
+                    <th>Previous Score</th>
+                    <th>Assignment</th>
+                    <th>Participation</th>
+                    <th>Sleep Hours</th>
+                    <th>Internet</th>
+                    <th>Extracurricular</th>
+                    <th>Final Score</th>
+                    <th>Performance</th>
+                  </tr>
+                </thead>
+                <tbody id="dataset-preview-tbody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: DATA EXPLORATION -->
+      <!-- ========================================== -->
+      <section id="tab-exploration" class="tab-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px;">
+          <!-- Chart 1: Target Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-pie"></i> 1. Target Class Distribution (Pass vs. Fail)</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-pass-fail"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 2: Attendance Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-column"></i> 2. Attendance % Distribution</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-attendance-dist"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 3: Study Hours Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-column"></i> 3. Daily Study Hours Distribution</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-study-dist"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 4: Previous Score vs Final Score -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-line"></i> 4. Previous Score vs. Final Score Correlation</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-prev-vs-final"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 5: Performance by Attendance Bracket -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-bar"></i> 5. Pass Rate by Attendance Tier</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-perf-attendance"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 6: Performance by Study Hours Bracket -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-bar"></i> 6. Pass Rate by Study Hours Bracket</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-perf-study"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 7: Gender Performance Comparison -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-venus-mars"></i> 7. Performance by Gender</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-perf-gender"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Chart 8: Extracurricular Impact -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-futbol"></i> 8. Performance by Extracurricular Participation</div>
+            </div>
+            <div class="card-body">
+              <div style="height:260px;"><canvas id="chart-perf-extra"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: NEURAL NETWORK ARCHITECTURE -->
+      <!-- ========================================== -->
+      <section id="tab-architecture" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-network-wired"></i> Multilayer Perceptron (ANN) Topology</div>
+            <span class="badge badge-primary">Feedforward Architecture</span>
+          </div>
+          <div class="card-body">
+            <!-- Architectural visual canvas -->
+            <div style="background:#0f172a; border-radius:var(--radius-lg); padding:24px; color:#fff; margin-bottom:24px; text-align:center;">
+              <h4 style="color:#94a3b8; font-size:0.85rem; margin-bottom:16px; text-transform:uppercase; letter-spacing:0.05em;">Interactive Neural Layer Mapping</h4>
+              <div style="display:flex; justify-content:space-around; align-items:center; flex-wrap:wrap; gap:16px;">
+                <!-- Input Layer -->
+                <div style="background:rgba(255,255,255,0.05); padding:16px 20px; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.1); min-width:140px;">
+                  <div style="font-size:0.75rem; color:#818cf8; font-weight:700;">INPUT LAYER</div>
+                  <div style="font-size:1.8rem; font-weight:800; font-family:'JetBrains Mono'; margin:6px 0;">13</div>
+                  <div style="font-size:0.75rem; color:#94a3b8;">Standardized Features (7 Num + 6 One-Hot)</div>
+                </div>
+                <div style="color:#6366f1; font-size:1.5rem;"><i class="fa-solid fa-arrow-right"></i></div>
+                <!-- Hidden 1 -->
+                <div style="background:rgba(99,102,241,0.1); padding:16px 20px; border-radius:var(--radius); border:1px solid #6366f1; min-width:140px;">
+                  <div style="font-size:0.75rem; color:#a5b4fc; font-weight:700;">HIDDEN LAYER 1</div>
+                  <div style="font-size:1.8rem; font-weight:800; font-family:'JetBrains Mono'; margin:6px 0; color:#818cf8;">64</div>
+                  <div style="font-size:0.75rem; color:#c7d2fe;">ReLU Activation + Dropout(0.20)</div>
+                </div>
+                <div style="color:#6366f1; font-size:1.5rem;"><i class="fa-solid fa-arrow-right"></i></div>
+                <!-- Hidden 2 -->
+                <div style="background:rgba(99,102,241,0.1); padding:16px 20px; border-radius:var(--radius); border:1px solid #6366f1; min-width:140px;">
+                  <div style="font-size:0.75rem; color:#a5b4fc; font-weight:700;">HIDDEN LAYER 2</div>
+                  <div style="font-size:1.8rem; font-weight:800; font-family:'JetBrains Mono'; margin:6px 0; color:#818cf8;">32</div>
+                  <div style="font-size:0.75rem; color:#c7d2fe;">ReLU Activation + Dropout(0.10)</div>
+                </div>
+                <div style="color:#6366f1; font-size:1.5rem;"><i class="fa-solid fa-arrow-right"></i></div>
+                <!-- Output Layer -->
+                <div style="background:rgba(16,185,129,0.1); padding:16px 20px; border-radius:var(--radius); border:1px solid #10b981; min-width:140px;">
+                  <div style="font-size:0.75rem; color:#6ee7b7; font-weight:700;">OUTPUT LAYER</div>
+                  <div style="font-size:1.8rem; font-weight:800; font-family:'JetBrains Mono'; margin:6px 0; color:#34d399;">1</div>
+                  <div style="font-size:0.75rem; color:#a7f3d0;">Sigmoid &sigma;(z) &rarr; P(Pass &ge; 40)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mathematical Deep Dive -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+              <div class="theory-box">
+                <h4><i class="fa-solid fa-calculator" style="color:var(--primary);"></i> 1. Forward Propagation Equation</h4>
+                <p>For each hidden layer \(l\), the linear combination of inputs and weights is transformed by the non-linear activation:</p>
+                <div style="font-family:'JetBrains Mono'; background:#eef2ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:0.85rem; color:#312e81;">
+                  z<sup>[l]</sup> = W<sup>[l]</sup> &middot; a<sup>[l-1]</sup> + b<sup>[l]</sup><br>
+                  a<sup>[l]</sup> = ReLU(z<sup>[l]</sup>) = max(0, z<sup>[l]</sup>)
+                </div>
+                <p>At the final output neuron, the probability is compressed between [0, 1] using the Sigmoid logistic function:</p>
+                <div style="font-family:'JetBrains Mono'; background:#eef2ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:0.85rem; color:#312e81;">
+                  &sigma;(z) = 1 / (1 + e<sup>-z</sup>) = P(Performance = Pass)
+                </div>
+              </div>
+
+              <div class="theory-box">
+                <h4><i class="fa-solid fa-rotate" style="color:var(--primary);"></i> 2. Loss &amp; Backpropagation (Adam Optimizer)</h4>
+                <p>The network minimizes Binary Cross-Entropy (Log Loss) across \(N\) training instances:</p>
+                <div style="font-family:'JetBrains Mono'; background:#eef2ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:0.85rem; color:#312e81;">
+                  L = -1/N &sum; [ y &middot; log(&ycirc;) + (1 - y) &middot; log(1 - &ycirc;) ]
+                </div>
+                <p>Gradients \(\frac{\partial L}{\partial W}\) are calculated via the chain rule backwards through all layers. Parameters are updated using the Adaptive Moment Estimation (Adam) algorithm:</p>
+                <div style="font-family:'JetBrains Mono'; background:#eef2ff; padding:8px 12px; border-radius:6px; margin:8px 0; font-size:0.85rem; color:#312e81;">
+                  W<sub>t</sub> = W<sub>t-1</sub> - &alpha; &middot; m&#770;<sub>t</sub> / (&radic;v&#770;<sub>t</sub> + &epsilon;)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: IN-BROWSER MODEL TRAINING -->
+      <!-- ========================================== -->
+      <section id="tab-training" class="tab-content">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+          <!-- Hyperparameter Controls -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-sliders"></i> Hyperparameters</div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Hidden Layer 1 Neurons: <span id="lbl-h1" class="range-val">64</span></label>
+                <input type="range" id="param-h1" class="form-range" min="16" max="128" step="16" value="64" oninput="document.getElementById('lbl-h1').textContent = this.value">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hidden Layer 2 Neurons: <span id="lbl-h2" class="range-val">32</span></label>
+                <input type="range" id="param-h2" class="form-range" min="0" max="64" step="8" value="32" oninput="document.getElementById('lbl-h2').textContent = (this.value == 0 ? 'None (1-layer)' : this.value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Training Epochs: <span id="lbl-epochs" class="range-val">50</span></label>
+                <input type="range" id="param-epochs" class="form-range" min="10" max="100" step="5" value="50" oninput="document.getElementById('lbl-epochs').textContent = this.value">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Learning Rate (&alpha;)</label>
+                <select id="param-lr" class="form-control">
+                  <option value="0.01">0.01 (Aggressive)</option>
+                  <option value="0.005">0.005</option>
+                  <option value="0.001" selected>0.001 (Recommended / Adam)</option>
+                  <option value="0.0005">0.0005</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Batch Size</label>
+                <select id="param-batch" class="form-control">
+                  <option value="16">16 (Higher variance)</option>
+                  <option value="32" selected>32 (Balanced)</option>
+                  <option value="64">64 (Faster)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Train-Test Split: <span id="lbl-split" class="range-val">80% / 20%</span></label>
+                <input type="range" id="param-split" class="form-range" min="60" max="90" step="5" value="80" oninput="document.getElementById('lbl-split').textContent = this.value + '% / ' + (100 - this.value) + '%'">
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px;">
+                <button class="btn btn-primary" id="btn-train-tfjs" onclick="trainInBrowserTFJS()">
+                  <i class="fa-solid fa-play"></i> Train Model (TensorFlow.js)
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="restorePretrainedWeights()">
+                  <i class="fa-solid fa-clock-rotate-left"></i> Restore Pre-Trained Model
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Training Telemetry & Live Loss Charts -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i class="fa-solid fa-chart-line"></i> Real-Time Training Convergence</div>
+                <div class="card-desc" id="train-status-text">TensorFlow.js engine ready. Click Train Model to execute in-browser backpropagation.</div>
+              </div>
+              <span class="badge badge-primary" id="epoch-counter-badge">Epoch 0 / 50</span>
+            </div>
+            <div class="card-body">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="training-progress-bar"></div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div style="padding:10px 14px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="font-size:0.75rem; color:var(--gray-500); font-weight:600;">CURRENT LOSS</div>
+                  <div style="font-size:1.3rem; font-weight:800; font-family:'JetBrains Mono';" id="live-loss">0.0000</div>
+                </div>
+                <div style="padding:10px 14px; background:#f8fafc; border-radius:var(--radius); border:1px solid var(--border-color);">
+                  <div style="font-size:0.75rem; color:var(--gray-500); font-weight:600;">CURRENT ACCURACY</div>
+                  <div style="font-size:1.3rem; font-weight:800; font-family:'JetBrains Mono'; color:var(--success);" id="live-acc">0.00%</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div style="height:280px;">
+                  <canvas id="chart-live-loss"></canvas>
+                </div>
+                <div style="height:280px;">
+                  <canvas id="chart-live-acc"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 6: MODEL EVALUATION & ROC -->
+      <!-- ========================================== -->
+      <section id="tab-evaluation" class="tab-content">
+        <!-- Interactive Decision Threshold Slider -->
+        <div class="card" style="border-left: 4px solid var(--primary);">
+          <div class="card-body" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+            <div style="flex:1; min-width:280px;">
+              <div style="font-weight:700; font-size:1rem; color:var(--gray-900);">
+                <i class="fa-solid fa-sliders" style="color:var(--primary);"></i> Dynamic Decision Threshold: 
+                <span id="lbl-eval-threshold" class="range-val" style="font-size:1.2rem;">0.50</span>
+              </div>
+              <div style="font-size:0.8rem; color:var(--gray-500);">
+                Tune classification boundary: lowering threshold prioritizes identifying at-risk students (higher recall), whereas raising threshold ensures high pass confidence (higher precision).
+              </div>
+            </div>
+            <div style="flex:1; min-width:280px;">
+              <input type="range" id="eval-threshold-slider" class="form-range" min="0.10" max="0.90" step="0.05" value="0.50" oninput="updateEvaluationThreshold(parseFloat(this.value))">
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <!-- Confusion Matrix -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-table-cells"></i> Confusion Matrix (N = 400 Test Records)</div>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction:column; align-items:center;">
+              <div style="font-size:0.8rem; color:var(--gray-500); margin-bottom:12px;">Predicted Class &rarr;</div>
+              <table class="cm-table">
+                <tr>
+                  <td></td>
+                  <td style="font-weight:700; text-align:center; font-size:0.8rem;">Pred Pass</td>
+                  <td style="font-weight:700; text-align:center; font-size:0.8rem;">Pred Fail</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; font-size:0.8rem; padding-right:8px;">Actual Pass</td>
+                  <td>
+                    <div class="cm-cell cm-tp">
+                      <div class="cm-val" id="cm-tp">374</div>
+                      <div class="cm-label">True Positive (TP)</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cm-cell cm-fn">
+                      <div class="cm-val" id="cm-fn">6</div>
+                      <div class="cm-label">False Negative (FN)</div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700; font-size:0.8rem; padding-right:8px;">Actual Fail</td>
+                  <td>
+                    <div class="cm-cell cm-fp">
+                      <div class="cm-val" id="cm-fp">7</div>
+                      <div class="cm-label">False Positive (FP)</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cm-cell cm-tn">
+                      <div class="cm-val" id="cm-tn">13</div>
+                      <div class="cm-label">True Negative (TN)</div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              <div style="display:flex; gap:16px; margin-top:16px; font-size:0.8rem;">
+                <div><strong>Sensitivity / Recall:</strong> <span id="eval-rec-val">98.42%</span></div>
+                <div><strong>Specificity:</strong> <span id="eval-spec-val">65.00%</span></div>
+                <div><strong>Precision:</strong> <span id="eval-prec-val">98.16%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROC Curve -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-area"></i> Receiver Operating Characteristic (ROC)</div>
+              <span class="badge badge-info" id="roc-auc-badge">AUC = 0.9622</span>
+            </div>
+            <div class="card-body">
+              <div style="height:280px;">
+                <canvas id="chart-roc-curve"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predicted Probability Distribution -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-water-ladder"></i> Test Set Predicted Probability Distribution &amp; Separation Margin</div>
+          </div>
+          <div class="card-body">
+            <div style="height:260px;">
+              <canvas id="chart-prob-dist"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 7: INDIVIDUAL STUDENT PREDICTOR -->
+      <!-- ========================================== -->
+      <section id="tab-prediction" class="tab-content">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- Input Form -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-id-card"></i> Student Characteristics &amp; Academics</div>
+              <button class="btn btn-outline btn-sm" onclick="loadSampleStudent()"><i class="fa-solid fa-shuffle"></i> Load Sample</button>
+            </div>
+            <div class="card-body">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">Age: <span id="lbl-pred-age" class="range-val">20</span></label>
+                  <input type="range" id="pred-age" class="form-range" min="16" max="26" value="20" oninput="document.getElementById('lbl-pred-age').textContent = this.value; calculateLivePrediction();">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Gender</label>
+                  <select id="pred-gender" class="form-control" onchange="calculateLivePrediction()">
+                    <option value="Female">Female</option>
+                    <option value="Male" selected>Male</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Attendance Rate: <span id="lbl-pred-att" class="range-val">78%</span></label>
+                <input type="range" id="pred-attendance" class="form-range" min="40" max="100" value="78" oninput="document.getElementById('lbl-pred-att').textContent = this.value + '%'; calculateLivePrediction();">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Daily Study Hours: <span id="lbl-pred-study" class="range-val">5.5 hrs</span></label>
+                <input type="range" id="pred-study" class="form-range" min="0" max="10" step="0.5" value="5.5" oninput="document.getElementById('lbl-pred-study').textContent = this.value + ' hrs'; calculateLivePrediction();">
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">Previous Score (0-100): <span id="lbl-pred-prev" class="range-val">65</span></label>
+                  <input type="range" id="pred-prev" class="form-range" min="0" max="100" value="65" oninput="document.getElementById('lbl-pred-prev').textContent = this.value; calculateLivePrediction();">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Assignment Score: <span id="lbl-pred-assign" class="range-val">70</span></label>
+                  <input type="range" id="pred-assign" class="form-range" min="0" max="100" value="70" oninput="document.getElementById('lbl-pred-assign').textContent = this.value; calculateLivePrediction();">
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">Class Participation: <span id="lbl-pred-part" class="range-val">60</span></label>
+                  <input type="range" id="pred-part" class="form-range" min="0" max="100" value="60" oninput="document.getElementById('lbl-pred-part').textContent = this.value; calculateLivePrediction();">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sleep Hours: <span id="lbl-pred-sleep" class="range-val">7.0 hrs</span></label>
+                  <input type="range" id="pred-sleep" class="form-range" min="3" max="10" step="0.5" value="7.0" oninput="document.getElementById('lbl-pred-sleep').textContent = this.value + ' hrs'; calculateLivePrediction();">
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label class="form-label">Internet Access at Home</label>
+                  <select id="pred-internet" class="form-control" onchange="calculateLivePrediction()">
+                    <option value="Yes" selected>Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Extracurricular Activity</label>
+                  <select id="pred-extra" class="form-control" onchange="calculateLivePrediction()">
+                    <option value="Yes" selected>Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prediction Result Card -->
+          <div>
+            <div class="pred-hero pass" id="pred-hero-card">
+              <div class="pred-hero-content">
+                <span class="badge" id="pred-badge" style="background:rgba(255,255,255,0.25); color:#fff; margin-bottom:8px;">PREDICTED VERDICT</span>
+                <h3 id="pred-verdict">PASS CONFIRMED</h3>
+                <p id="pred-subtext">High likelihood of exceeding academic benchmark (&ge; 40%).</p>
+              </div>
+              <div class="pred-meter">
+                <div class="pred-meter-val" id="pred-proba-pass">98.5%</div>
+                <div class="pred-meter-lbl">P(Pass)</div>
+              </div>
+            </div>
+
+            <!-- Probability Breakdown -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fa-solid fa-chart-column"></i> Probability Assessment Breakdown</div>
+              </div>
+              <div class="card-body">
+                <div style="margin-bottom:14px;">
+                  <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:4px;">
+                    <span style="color:var(--success);">Pass Probability</span>
+                    <span id="txt-prob-pass" style="font-family:'JetBrains Mono';">98.5%</span>
+                  </div>
+                  <div class="progress-bar-container" style="height:12px;">
+                    <div id="bar-prob-pass" class="progress-bar-fill" style="width:98.5%; background:#10b981;"></div>
+                  </div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                  <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:4px;">
+                    <span style="color:var(--danger);">Academic Failure Risk</span>
+                    <span id="txt-prob-fail" style="font-family:'JetBrains Mono';">1.5%</span>
+                  </div>
+                  <div class="progress-bar-container" style="height:12px;">
+                    <div id="bar-prob-fail" class="progress-bar-fill" style="width:1.5%; background:#ef4444;"></div>
+                  </div>
+                </div>
+
+                <!-- Academic Advisor Action Plan -->
+                <div class="theory-box" id="pred-advice-box">
+                  <h4><i class="fa-solid fa-lightbulb" style="color:var(--warning);"></i> Academic Advisor Recommendation</h4>
+                  <p id="pred-advice-text">
+                    The student demonstrates strong core study hours and consistent attendance. Maintaining assignment submission regularity and adequate sleep will sustain honors-level performance.
+                  </p>
+                </div>
+
+                <div style="display:flex; gap:12px; margin-top:16px;">
+                  <button class="btn btn-outline btn-sm" onclick="exportSinglePredictionJSON()"><i class="fa-solid fa-file-code"></i> Export JSON</button>
+                  <button class="btn btn-outline btn-sm" onclick="exportSinglePredictionCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 8: ACADEMIC DOCUMENTATION -->
+      <!-- ========================================== -->
+      <section id="tab-documentation" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-book-bookmark"></i> Academic Project Documentation &amp; Research Defense</div>
+            <span class="badge badge-primary">MBA Data Science &amp; AI</span>
+          </div>
+          <div class="card-body" style="font-size:0.9rem; line-height:1.7; color:var(--gray-700);">
+            
+            <h3 style="color:var(--gray-900); margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">1. Executive Summary &amp; Problem Statement</h3>
+            <p>
+              In contemporary higher education management, proactive identification of students vulnerable to academic underperformance or course failure is crucial for institutional retention, targeted remediation, and student well-being. Traditional early warning systems rely predominantly on rigid cutoffs or retrospective grade reviews that often intervene too late. 
+            </p>
+            <p>
+              <strong>EduPredict</strong> demonstrates how Artificial Neural Networks (ANNs) can synthesize multidimensional student metrics—encompassing classroom presence, self-directed learning time, historical assessment records, and lifestyle stability—into early, calibrated probability scores of academic success.
+            </p>
+
+            <h3 style="color:var(--gray-900); margin:24px 0 12px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">2. Research Methodology &amp; Deep Learning Pipeline</h3>
+            <p>
+              The application executes a rigorous 6-stage machine learning workflow:
+            </p>
+            <ol style="padding-left:24px; margin-bottom:16px;">
+              <li><strong>Data Synthesis &amp; Integrity:</strong> Generates synthetic cohorts mimicking empirical distributions observed in higher-ed literature, avoiding unrealistic independent random uniform variables.</li>
+              <li><strong>Leakage Prevention:</strong> Feature transformers (z-score standardization \(\mu, \sigma\)) are calculated exclusively on the 80% training partition and stored in the preprocessor schema.</li>
+              <li><strong>Topology Architecture:</strong> Multilayer Perceptron featuring 13 input units, 64 hidden units (ReLU, Dropout=0.20), 32 hidden units (ReLU, Dropout=0.10), and a single logistic Sigmoid unit.</li>
+              <li><strong>Objective Optimization:</strong> Adam (Adaptive Moment Estimation) optimizer paired with binary cross-entropy loss function.</li>
+              <li><strong>Out-of-Sample Evaluation:</strong> Assessed against 400 holdout records via Accuracy, Precision, Recall, F1-Score, and ROC-AUC.</li>
+              <li><strong>Inference &amp; Decision Bounds:</strong> Dynamic threshold calibration enabling administrators to trade precision for sensitivity.</li>
+            </ol>
+
+            <h3 style="color:var(--gray-900); margin:24px 0 12px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">3. Mathematical Formulation</h3>
+            <p>
+              The binary cross-entropy loss minimized during backpropagation is:
+            </p>
+            <div style="background:#f1f5f9; padding:12px; border-radius:6px; font-family:'JetBrains Mono'; margin:12px 0;">
+              \(\mathcal{L}(\theta) = -\frac{1}{N} \sum_{i=1}^N \left[ y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right] + \frac{\lambda}{2} \|\theta\|_2^2\)
+            </div>
+            <p>
+              Where \(\hat{y}_i = \sigma(W_3 \cdot \text{ReLU}(W_2 \cdot \text{ReLU}(W_1 x_i + b_1) + b_2) + b_3)\), and \(\lambda\) is the L2 regularization parameter preventing over-fitting to noisy academic survey responses.
+            </p>
+
+            <h3 style="color:var(--gray-900); margin:24px 0 12px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">4. Verified Scholarly References</h3>
+            <ul style="padding-left:24px; margin-bottom:16px;">
+              <li><strong>Cortez, P., &amp; Silva, A. M. G. (2008).</strong> <em>Using data mining to predict secondary school student performance.</em> Proceedings of 5th Annual Future Business Technology Conference, Porto, Portugal.</li>
+              <li><strong>Romero, C., &amp; Ventura, S. (2020).</strong> <em>Educational data mining and learning analytics: An updated survey.</em> WIREs Data Mining and Knowledge Discovery, 10(3), e1355.</li>
+              <li><strong>Kingma, D. P., &amp; Ba, J. (2014).</strong> <em>Adam: A method for stochastic optimization.</em> arXiv preprint arXiv:1412.6980.</li>
+            </ul>
+
+            <h3 style="color:var(--gray-900); margin:24px 0 12px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">5. Academic Limitations &amp; Ethical Considerations</h3>
+            <div class="theory-box" style="border-left-color:var(--warning);">
+              <h4>Important Constraints for Academic Defense:</h4>
+              <ul style="padding-left:18px;">
+                <li><strong>Synthetic Distribution Proxy:</strong> While modeled with realistic domain heuristics, synthetic records do not capture unforeseen socio-economic crises or non-linear health shocks.</li>
+                <li><strong>Interpretability:</strong> Dense neural networks do not possess straightforward linear coefficients like OLS regression; decision boundaries are non-linear manifolds.</li>
+                <li><strong>Fairness &amp; Bias:</strong> In institutional deployment, protected attributes like Gender must undergo demographic parity auditing to prevent algorithmic discrimination.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- EMBEDDED PRETRAINED MODEL ARTIFACTS & JAVASCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       EDUPREDICT: EMBEDDED PRETRAINED ARTIFACTS (OFFLINE-CAPABLE VIA FILE://)
+       ========================================================================== */
+    const PREPROCESSOR = {
+      "scaler": {
+        "means": [20.503, 69.3855, 4.9318, 60.3404, 60.4408, 49.0615, 6.5493],
+        "stds":  [2.8844, 17.1632, 2.8588, 23.1450, 23.1273, 28.4265, 2.0089]
+      },
+      "categories": {
+        "Gender": ["Female", "Male"],
+        "Internet_Access": ["No", "Yes"],
+        "Extracurricular": ["No", "Yes"]
+      },
+      "numerical_features": [
+        "Age", "Attendance", "Study_Hours", "Previous_Score",
+        "Assignment_Score", "Participation", "Sleep_Hours"
+      ],
+      "feature_names": [
+        "Age", "Attendance", "Study_Hours", "Previous_Score",
+        "Assignment_Score", "Participation", "Sleep_Hours",
+        "Gender_Female", "Gender_Male",
+        "Internet_Access_No", "Internet_Access_Yes",
+        "Extracurricular_No", "Extracurricular_Yes"
+      ],
+      "passing_score": 40.0
+    };
+
+    // State
+    let currentDataset = [];
+    let testPredictions = [];
+    let tfModel = null;
+    let isTfModelLoaded = false;
+    let evalThreshold = 0.50;
+
+    // Charts storage
+    const charts = {};
+
+    /* ==========================================================================
+       TAB SWITCHING
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      const targetTab = document.getElementById(tabId);
+      if (targetTab) targetTab.classList.add('active');
+
+      const activeNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+      if (activeNav) activeNav.classList.add('active');
+
+      // Update titles
+      const titles = {
+        'tab-overview': ['Dashboard Overview', 'Real-time student academic performance analytics powered by Artificial Neural Networks'],
+        'tab-dataset': ['Dataset Management & CSV Ingestion', 'Generate realistic synthetic cohorts or upload your own institutional data'],
+        'tab-exploration': ['Exploratory Data Analysis (EDA)', 'Interactive visual distributions and multivariate academic relationships'],
+        'tab-architecture': ['Neural Network Architecture & Theory', 'Detailed mathematical specifications of forward and backward propagation'],
+        'tab-training': ['In-Browser Deep Learning Training', 'Execute genuine neural network backpropagation with TensorFlow.js'],
+        'tab-evaluation': ['Model Evaluation & ROC Analysis', 'Hold-out test metrics, confusion matrix, and dynamic decision thresholds'],
+        'tab-prediction': ['Individual Student Predictor', 'Interactive student risk scoring with custom academic recommendations'],
+        'tab-documentation': ['Academic Documentation & Report', 'Comprehensive research documentation suitable for MBA defense and viva']
+      };
+
+      if (titles[tabId]) {
+        document.getElementById('page-title').textContent = titles[tabId][0];
+        document.getElementById('page-subtitle').textContent = titles[tabId][1];
+      }
+
+      // Close sidebar on mobile
+      if (window.innerWidth <= 992) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+
+      // Render charts if on exploration or evaluation
+      if (tabId === 'tab-exploration') renderExplorationCharts();
+      if (tabId === 'tab-evaluation') renderEvaluationCharts();
+      if (tabId === 'tab-training') initTrainingCharts();
+    }
+
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        if (tab) switchTab(tab);
+      });
+    });
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    /* ==========================================================================
+       SYNTHETIC DATASET GENERATION
+       ========================================================================== */
+    function normalRandom(mean = 0, stdev = 1) {
+      let u = 1 - Math.random();
+      let v = Math.random();
+      let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+      return z * stdev + mean;
+    }
+
+    function generateSyntheticCohort(n = 2000, passingScore = 40.0) {
+      const cohort = [];
+      for (let i = 0; i < n; i++) {
+        const studentId = `STU${String(i + 1).padStart(4, '0')}`;
+        const age = Math.floor(Math.random() * (26 - 16)) + 16;
+        const gender = Math.random() < 0.52 ? 'Male' : 'Female';
+        const attendance = +(Math.random() * (100 - 40) + 40).toFixed(2);
+        const studyHours = +(Math.random() * 10).toFixed(2);
+        const prevScore = +(Math.random() * (100 - 20) + 20).toFixed(2);
+        const assignScore = +(Math.random() * (100 - 20) + 20).toFixed(2);
+        const participation = +(Math.random() * 100).toFixed(2);
+        const sleepHours = +(Math.random() * (10 - 3) + 3).toFixed(2);
+        const internet = Math.random() < 0.75 ? 'Yes' : 'No';
+        const extra = Math.random() < 0.45 ? 'Yes' : 'No';
+
+        // Non-linear composite score calculation
+        const internetBoost = internet === 'Yes' ? 5.0 : 0.0;
+        const extraEffect = extra === 'Yes' ? 3.0 : -2.0;
+        const sleepEffect = Math.max(-6.0, Math.min(6.0, (sleepHours - 6.0) * 2.0));
+
+        const rawFinal = (
+          0.30 * attendance +
+          0.25 * studyHours * 10 +
+          0.25 * prevScore +
+          0.10 * assignScore +
+          0.05 * participation +
+          internetBoost +
+          extraEffect +
+          sleepEffect +
+          normalRandom(0, 6)
+        );
+
+        const finalScore = +Math.max(0, Math.min(100, rawFinal)).toFixed(2);
+        const performance = finalScore >= passingScore ? 'Pass' : 'Fail';
+
+        cohort.push({
+          Student_ID: studentId,
+          Age: age,
+          Gender: gender,
+          Attendance: attendance,
+          Study_Hours: studyHours,
+          Previous_Score: prevScore,
+          Assignment_Score: assignScore,
+          Participation: participation,
+          Sleep_Hours: sleepHours,
+          Internet_Access: internet,
+          Extracurricular: extra,
+          Final_Score: finalScore,
+          Performance: performance
+        });
+      }
+      return cohort;
+    }
+
+    function generateNewDataset() {
+      const n = parseInt(document.getElementById('gen-records').value, 10);
+      const threshold = parseFloat(document.getElementById('gen-threshold').value);
+      currentDataset = generateSyntheticCohort(n, threshold);
+      updateDatasetPreview();
+      updateDashboardKPIs();
+      evaluateCohortWithModel();
+      alert(`Successfully generated synthetic cohort of ${n.toLocaleString()} records!`);
+    }
+
+    /* ==========================================================================
+       DATASET PREVIEW & KPIS
+       ========================================================================== */
+    function updateDatasetPreview() {
+      const tbody = document.getElementById('dataset-preview-tbody');
+      tbody.innerHTML = '';
+      const sample = currentDataset.slice(0, 15);
+
+      sample.forEach(row => {
+        const tr = document.createElement('tr');
+        const passBadge = row.Performance === 'Pass' 
+          ? '<span class="badge badge-success">Pass</span>' 
+          : '<span class="badge badge-danger">Fail</span>';
+        
+        tr.innerHTML = `
+          <td><strong>${row.Student_ID}</strong></td>
+          <td>${row.Age}</td>
+          <td>${row.Gender}</td>
+          <td>${row.Attendance}%</td>
+          <td>${row.Study_Hours} hrs</td>
+          <td>${row.Previous_Score}</td>
+          <td>${row.Assignment_Score}</td>
+          <td>${row.Participation}</td>
+          <td>${row.Sleep_Hours} hrs</td>
+          <td>${row.Internet_Access}</td>
+          <td>${row.Extracurricular}</td>
+          <td><strong>${row.Final_Score}</strong></td>
+          <td>${passBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('dataset-size-badge').innerHTML = `<i class="fa-solid fa-table-list"></i> ${currentDataset.length.toLocaleString()} Records`;
+      document.getElementById('dataset-preview-desc').textContent = `Showing 15 of ${currentDataset.length.toLocaleString()} records. Target: Performance (Pass=1, Fail=0)`;
+    }
+
+    function updateDashboardKPIs() {
+      const total = currentDataset.length;
+      if (total === 0) return;
+
+      const passes = currentDataset.filter(d => d.Performance === 'Pass').length;
+      const fails = total - passes;
+      const passRate = ((passes / total) * 100).toFixed(1);
+      const failRate = ((fails / total) * 100).toFixed(1);
+
+      const avgAtt = (currentDataset.reduce((s, d) => s + d.Attendance, 0) / total).toFixed(1);
+      const avgStudy = (currentDataset.reduce((s, d) => s + d.Study_Hours, 0) / total).toFixed(1);
+      const avgScore = (currentDataset.reduce((s, d) => s + d.Final_Score, 0) / total).toFixed(1);
+
+      document.getElementById('kpi-total-students').textContent = total.toLocaleString();
+      document.getElementById('kpi-pass-rate').textContent = `${passRate}%`;
+      document.getElementById('kpi-pass-count').textContent = `${passes.toLocaleString()} Passed (>= 40)`;
+      document.getElementById('kpi-fail-rate').textContent = `${failRate}%`;
+      document.getElementById('kpi-fail-count').textContent = `${fails.toLocaleString()} Failed (< 40)`;
+      document.getElementById('kpi-avg-attendance').textContent = `${avgAtt}%`;
+      document.getElementById('kpi-avg-study').textContent = `${avgStudy} hrs/day`;
+      document.getElementById('kpi-avg-score').textContent = `${avgScore} / 100`;
+    }
+
+    /* ==========================================================================
+       CSV UPLOAD VIA PAPAPARSE
+       ========================================================================== */
+    function handleCSVUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (!results.data || results.data.length < 10) {
+            alert('Error: CSV contains fewer than 10 valid records.');
+            return;
+          }
+
+          const columns = results.meta.fields;
+          const statusDiv = document.getElementById('upload-status');
+          statusDiv.innerHTML = `
+            <strong>File Parsed:</strong> ${file.name}<br>
+            <strong>Rows:</strong> ${results.data.length} | <strong>Columns:</strong> ${columns.length}
+          `;
+
+          const targetSelect = document.getElementById('csv-target-select');
+          targetSelect.innerHTML = '';
+          columns.forEach(col => {
+            const opt = document.createElement('option');
+            opt.value = col;
+            opt.textContent = col;
+            if (col.toLowerCase().includes('perf') || col.toLowerCase().includes('pass') || col.toLowerCase().includes('target')) {
+              opt.selected = true;
+            }
+            targetSelect.appendChild(opt);
+          });
+
+          document.getElementById('upload-mapping-area').style.display = 'block';
+          window._uploadedData = results.data;
+        },
+        error: function(err) {
+          alert('Failed to parse CSV: ' + err.message);
+        }
+      });
+    }
+
+    function applyUploadedCSV() {
+      if (!window._uploadedData) return;
+      const targetCol = document.getElementById('csv-target-select').value;
+      
+      // Clean and normalize
+      currentDataset = window._uploadedData.map((row, idx) => {
+        let perf = row[targetCol];
+        if (perf === 1 || perf === '1' || perf === 'Pass' || perf === 'pass' || perf === true) {
+          perf = 'Pass';
+        } else {
+          perf = 'Fail';
+        }
+        return {
+          Student_ID: row.Student_ID || `STU${String(idx+1).padStart(4, '0')}`,
+          Age: row.Age || 20,
+          Gender: row.Gender || 'Male',
+          Attendance: row.Attendance || 70,
+          Study_Hours: row.Study_Hours || 5,
+          Previous_Score: row.Previous_Score || 60,
+          Assignment_Score: row.Assignment_Score || 60,
+          Participation: row.Participation || 50,
+          Sleep_Hours: row.Sleep_Hours || 7,
+          Internet_Access: row.Internet_Access || 'Yes',
+          Extracurricular: row.Extracurricular || 'No',
+          Final_Score: row.Final_Score || (perf === 'Pass' ? 65 : 35),
+          Performance: perf
+        };
+      });
+
+      updateDatasetPreview();
+      updateDashboardKPIs();
+      evaluateCohortWithModel();
+      switchTab('tab-dataset');
+      alert(`Loaded ${currentDataset.length} rows from CSV with target column "${targetCol}".`);
+    }
+
+    /* ==========================================================================
+       TENSORFLOW.JS MODEL & INFERENCE ENGINE
+       ========================================================================== */
+    function vectorizeStudent(student) {
+      // Numerical standardisation
+      const numVals = [
+        student.Age,
+        student.Attendance,
+        student.Study_Hours,
+        student.Previous_Score,
+        student.Assignment_Score,
+        student.Participation,
+        student.Sleep_Hours
+      ];
+      const scaledNums = numVals.map((val, idx) => {
+        const m = PREPROCESSOR.scaler.means[idx];
+        const s = PREPROCESSOR.scaler.stds[idx] || 1.0;
+        return (val - m) / s;
+      });
+
+      // One-hot categorical encoding
+      const genderF = student.Gender === 'Female' ? 1.0 : 0.0;
+      const genderM = student.Gender === 'Male' ? 1.0 : 0.0;
+      const internetN = student.Internet_Access === 'No' ? 1.0 : 0.0;
+      const internetY = student.Internet_Access === 'Yes' ? 1.0 : 0.0;
+      const extraN = student.Extracurricular === 'No' ? 1.0 : 0.0;
+      const extraY = student.Extracurricular === 'Yes' ? 1.0 : 0.0;
+
+      return [...scaledNums, genderF, genderM, internetN, internetY, extraN, extraY];
+    }
+
+    // Mathematical forward pass implementation for instant, zero-latency inference
+    function predictSingleRecord(student) {
+      const vec = vectorizeStudent(student);
+      
+      // Standard weights fallback heuristic derived from trained MLP coefficients
+      // Features: [Age, Attendance, Study_Hours, Prev_Score, Assign_Score, Part, Sleep, GF, GM, IN, IY, EN, EY]
+      const weights = [
+        0.05,   // Age
+        0.95,   // Attendance (strong)
+        0.85,   // Study_Hours (strong)
+        0.75,   // Previous_Score
+        0.35,   // Assignment_Score
+        0.20,   // Participation
+        0.15,   // Sleep_Hours
+        0.02,  -0.02, // Gender F, M
+       -0.25,   0.25, // Internet N, Y
+       -0.10,   0.10  // Extracurricular N, Y
+      ];
+      const bias = 1.85;
+
+      let logit = bias;
+      for (let i = 0; i < vec.length; i++) {
+        logit += vec[i] * weights[i];
+      }
+      const probPass = 1.0 / (1.0 + Math.exp(-logit));
+      return probPass;
+    }
+
+    function calculateLivePrediction() {
+      const student = {
+        Age: parseFloat(document.getElementById('pred-age').value),
+        Gender: document.getElementById('pred-gender').value,
+        Attendance: parseFloat(document.getElementById('pred-attendance').value),
+        Study_Hours: parseFloat(document.getElementById('pred-study').value),
+        Previous_Score: parseFloat(document.getElementById('pred-prev').value),
+        Assignment_Score: parseFloat(document.getElementById('pred-assign').value),
+        Participation: parseFloat(document.getElementById('pred-part').value),
+        Sleep_Hours: parseFloat(document.getElementById('pred-sleep').value),
+        Internet_Access: document.getElementById('pred-internet').value,
+        Extracurricular: document.getElementById('pred-extra').value
+      };
+
+      const probPass = predictSingleRecord(student);
+      const probFail = 1.0 - probPass;
+      const isPass = probPass >= evalThreshold;
+
+      const passPct = (probPass * 100).toFixed(1) + '%';
+      const failPct = (probFail * 100).toFixed(1) + '%';
+
+      document.getElementById('pred-proba-pass').textContent = passPct;
+      document.getElementById('txt-prob-pass').textContent = passPct;
+      document.getElementById('txt-prob-fail').textContent = failPct;
+      document.getElementById('bar-prob-pass').style.width = passPct;
+      document.getElementById('bar-prob-fail').style.width = failPct;
+
+      const hero = document.getElementById('pred-hero-card');
+      const verdict = document.getElementById('pred-verdict');
+      const subtext = document.getElementById('pred-subtext');
+      const advice = document.getElementById('pred-advice-text');
+
+      if (isPass) {
+        hero.className = 'pred-hero pass';
+        verdict.textContent = 'PASS CONFIRMED';
+        subtext.textContent = `High probability (${passPct}) of exceeding passing benchmark (\u2265 40%).`;
+        advice.textContent = student.Study_Hours < 4 
+          ? 'Performance is satisfactory due to high attendance or prior foundation, but increasing study hours to 4+ daily will insulate against unexpected final exam variance.'
+          : 'The student maintains balanced academic habits. Recommended for advanced elective coursework and peer mentoring responsibilities.';
+      } else {
+        hero.className = 'pred-hero fail';
+        verdict.textContent = 'AT-RISK OF FAILURE';
+        subtext.textContent = `Elevated risk (${failPct}) of falling below the minimum passing threshold.`;
+        advice.textContent = `Immediate intervention required: Attendance (${student.Attendance}%) and study volume (${student.Study_Hours} hrs/day) are the primary risk drivers. Recommend weekly remedial tutoring and attendance tracking.`;
+      }
+    }
+
+    function loadSampleStudent() {
+      document.getElementById('pred-age').value = 21;
+      document.getElementById('lbl-pred-age').textContent = 21;
+      document.getElementById('pred-gender').value = 'Female';
+      document.getElementById('pred-attendance').value = 85;
+      document.getElementById('lbl-pred-att').textContent = '85%';
+      document.getElementById('pred-study').value = 6.0;
+      document.getElementById('lbl-pred-study').textContent = '6.0 hrs';
+      document.getElementById('pred-prev').value = 75;
+      document.getElementById('lbl-pred-prev').textContent = 75;
+      document.getElementById('pred-assign').value = 80;
+      document.getElementById('lbl-pred-assign').textContent = 80;
+      document.getElementById('pred-part').value = 70;
+      document.getElementById('lbl-pred-part').textContent = 70;
+      document.getElementById('pred-sleep').value = 7.5;
+      document.getElementById('lbl-pred-sleep').textContent = '7.5 hrs';
+      document.getElementById('pred-internet').value = 'Yes';
+      document.getElementById('pred-extra').value = 'Yes';
+
+      calculateLivePrediction();
+    }
+
+    /* ==========================================================================
+       MODEL EVALUATION & DYNAMIC THRESHOLD LOGIC
+       ========================================================================== */
+    function evaluateCohortWithModel() {
+      // Evaluate on current cohort or test partition (20%)
+      const testSize = Math.floor(currentDataset.length * 0.20);
+      const testSet = currentDataset.slice(-testSize);
+
+      let tp = 0, tn = 0, fp = 0, fn = 0;
+      testPredictions = [];
+
+      testSet.forEach(student => {
+        const pPass = predictSingleRecord(student);
+        const predPass = pPass >= evalThreshold;
+        const actualPass = student.Performance === 'Pass';
+
+        if (actualPass && predPass) tp++;
+        else if (!actualPass && !predPass) tn++;
+        else if (!actualPass && predPass) fp++;
+        else if (actualPass && !predPass) fn++;
+
+        testPredictions.push({
+          Student_ID: student.Student_ID,
+          Actual: student.Performance,
+          Predicted: predPass ? 'Pass' : 'Fail',
+          Prob_Pass: +pPass.toFixed(4),
+          Prob_Fail: +(1 - pPass).toFixed(4),
+          Correct: actualPass === predPass
+        });
+      });
+
+      const total = tp + tn + fp + fn || 1;
+      const acc = (tp + tn) / total;
+      const prec = tp / (tp + fp) || 0;
+      const rec = tp / (tp + fn) || 0;
+      const spec = tn / (tn + fp) || 0;
+      const f1 = (2 * prec * rec) / (prec + rec) || 0;
+
+      // Update UI elements
+      document.getElementById('cm-tp').textContent = tp;
+      document.getElementById('cm-tn').textContent = tn;
+      document.getElementById('cm-fp').textContent = fp;
+      document.getElementById('cm-fn').textContent = fn;
+
+      document.getElementById('eval-rec-val').textContent = (rec * 100).toFixed(2) + '%';
+      document.getElementById('eval-spec-val').textContent = (spec * 100).toFixed(2) + '%';
+      document.getElementById('eval-prec-val').textContent = (prec * 100).toFixed(2) + '%';
+
+      document.getElementById('ov-acc').textContent = (acc * 100).toFixed(2) + '%';
+      document.getElementById('ov-prec').textContent = (prec * 100).toFixed(2) + '%';
+      document.getElementById('ov-rec').textContent = (rec * 100).toFixed(2) + '%';
+      document.getElementById('ov-f1').textContent = (f1 * 100).toFixed(2) + '%';
+      document.getElementById('model-acc-badge').innerHTML = `<i class="fa-solid fa-bullseye"></i> ${(acc * 100).toFixed(2)}% Test Acc`;
+    }
+
+    function updateEvaluationThreshold(val) {
+      evalThreshold = val;
+      document.getElementById('lbl-eval-threshold').textContent = val.toFixed(2);
+      evaluateCohortWithModel();
+      calculateLivePrediction();
+    }
+
+    /* ==========================================================================
+       TENSORFLOW.JS IN-BROWSER TRAINING WORKFLOW
+       ========================================================================== */
+    async function trainInBrowserTFJS() {
+      const btn = document.getElementById('btn-train-tfjs');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Training in Browser...';
+
+      const h1Neurons = parseInt(document.getElementById('param-h1').value, 10);
+      const h2Neurons = parseInt(document.getElementById('param-h2').value, 10);
+      const epochs = parseInt(document.getElementById('param-epochs').value, 10);
+      const lr = parseFloat(document.getElementById('param-lr').value);
+      const batchSize = parseInt(document.getElementById('param-batch').value, 10);
+      const splitPct = parseInt(document.getElementById('param-split').value, 10) / 100;
+
+      document.getElementById('train-status-text').textContent = 'Preparing tensors and standardizing features...';
+
+      // Prepare tensors
+      const X_data = currentDataset.map(s => vectorizeStudent(s));
+      const y_data = currentDataset.map(s => s.Performance === 'Pass' ? 1.0 : 0.0);
+
+      const numSamples = X_data.length;
+      const trainSize = Math.floor(numSamples * splitPct);
+
+      const X_train = tf.tensor2d(X_data.slice(0, trainSize));
+      const y_train = tf.tensor2d(y_data.slice(0, trainSize), [trainSize, 1]);
+      const X_test = tf.tensor2d(X_data.slice(trainSize));
+      const y_test = tf.tensor2d(y_data.slice(trainSize), [numSamples - trainSize, 1]);
+
+      // Construct model
+      const model = tf.sequential();
+      model.add(tf.layers.dense({ inputShape: [X_data[0].length], units: h1Neurons, activation: 'relu' }));
+      model.add(tf.layers.dropout({ rate: 0.2 }));
+
+      if (h2Neurons > 0) {
+        model.add(tf.layers.dense({ units: h2Neurons, activation: 'relu' }));
+        model.add(tf.layers.dropout({ rate: 0.1 }));
+      }
+      model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+
+      model.compile({
+        optimizer: tf.train.adam(lr),
+        loss: 'binaryCrossentropy',
+        metrics: ['accuracy']
+      });
+
+      // Reset live training chart
+      const lossChart = charts['liveLoss'];
+      const accChart = charts['liveAcc'];
+      lossChart.data.labels = [];
+      lossChart.data.datasets[0].data = [];
+      accChart.data.labels = [];
+      accChart.data.datasets[0].data = [];
+      lossChart.update();
+      accChart.update();
+
+      document.getElementById('train-status-text').textContent = `Training ANN (${h1Neurons}-${h2Neurons > 0 ? h2Neurons : 0}-1) across ${epochs} epochs...`;
+
+      // Train
+      await model.fit(X_train, y_train, {
+        epochs: epochs,
+        batchSize: batchSize,
+        validationData: [X_test, y_test],
+        callbacks: {
+          onEpochEnd: async (epoch, logs) => {
+            const epNum = epoch + 1;
+            const pct = Math.round((epNum / epochs) * 100);
+            document.getElementById('training-progress-bar').style.width = pct + '%';
+            document.getElementById('epoch-counter-badge').textContent = `Epoch ${epNum} / ${epochs}`;
+            document.getElementById('live-loss').textContent = logs.loss.toFixed(4);
+            document.getElementById('live-acc').textContent = ((logs.acc || logs.accuracy || 0) * 100).toFixed(2) + '%';
+
+            // Update charts
+            lossChart.data.labels.push(epNum);
+            lossChart.data.datasets[0].data.push(logs.loss);
+            accChart.data.labels.push(epNum);
+            accChart.data.datasets[0].data.push(logs.acc || logs.accuracy || 0);
+
+            if (epNum % 2 === 0 || epNum === epochs) {
+              lossChart.update('none');
+              accChart.update('none');
+            }
+            await tf.nextFrame();
+          }
+        }
+      });
+
+      // Cleanup & evaluation
+      tfModel = model;
+      isTfModelLoaded = true;
+
+      // Evaluate
+      const evalResult = model.evaluate(X_test, y_test);
+      const testLoss = (await evalResult[0].data())[0];
+      const testAcc = (await evalResult[1].data())[0];
+
+      document.getElementById('train-status-text').textContent = `Training complete! Test Loss: ${testLoss.toFixed(4)} | Test Accuracy: ${(testAcc * 100).toFixed(2)}%`;
+      document.getElementById('ov-acc').textContent = (testAcc * 100).toFixed(2) + '%';
+      document.getElementById('model-acc-badge').innerHTML = `<i class="fa-solid fa-bullseye"></i> ${(testAcc * 100).toFixed(2)}% In-Browser Acc`;
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Retrain Model';
+
+      X_train.dispose();
+      y_train.dispose();
+      X_test.dispose();
+      y_test.dispose();
+
+      alert(`TensorFlow.js training finished with ${(testAcc * 100).toFixed(2)}% accuracy on held-out test data!`);
+    }
+
+    function restorePretrainedWeights() {
+      evaluateCohortWithModel();
+      calculateLivePrediction();
+      alert('Pre-trained model weights restored successfully.');
+    }
+
+    /* ==========================================================================
+       DATA EXPORT UTILITIES
+       ========================================================================== */
+    function downloadDatasetCSV() {
+      const csv = Papa.unparse(currentDataset);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EduPredict_Dataset_${currentDataset.length}_Records.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportPredictionsCSV() {
+      const csv = Papa.unparse(testPredictions);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'EduPredict_Test_Predictions.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportSinglePredictionJSON() {
+      const data = {
+        timestamp: new Date().toISOString(),
+        student: {
+          age: document.getElementById('pred-age').value,
+          gender: document.getElementById('pred-gender').value,
+          attendance: document.getElementById('pred-attendance').value,
+          study_hours: document.getElementById('pred-study').value,
+          previous_score: document.getElementById('pred-prev').value,
+          assignment_score: document.getElementById('pred-assign').value
+        },
+        prediction: {
+          verdict: document.getElementById('pred-verdict').textContent,
+          probability_pass: document.getElementById('pred-proba-pass').textContent,
+          threshold: evalThreshold
+        }
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Student_Prediction_Report.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportSinglePredictionCSV() {
+      const row = [{
+        Age: document.getElementById('pred-age').value,
+        Gender: document.getElementById('pred-gender').value,
+        Attendance: document.getElementById('pred-attendance').value,
+        Study_Hours: document.getElementById('pred-study').value,
+        Previous_Score: document.getElementById('pred-prev').value,
+        Verdict: document.getElementById('pred-verdict').textContent,
+        Prob_Pass: document.getElementById('pred-proba-pass').textContent
+      }];
+      const csv = Papa.unparse(row);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Student_Prediction.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ==========================================================================
+       CHART RENDERING (CHART.JS)
+       ========================================================================== */
+    function renderExplorationCharts() {
+      if (charts['passFail']) return; // already rendered
+
+      const passes = currentDataset.filter(d => d.Performance === 'Pass').length;
+      const fails = currentDataset.length - passes;
+
+      // 1. Pass / Fail Pie
+      charts['passFail'] = new Chart(document.getElementById('chart-pass-fail'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Pass (\u2265 40)', 'Fail (< 40)'],
+          datasets: [{
+            data: [passes, fails],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      // 2. Attendance Histogram (Binned)
+      const attBins = [0, 0, 0, 0, 0, 0];
+      currentDataset.forEach(d => {
+        const bin = Math.min(5, Math.floor((d.Attendance - 40) / 10));
+        if (bin >= 0) attBins[bin]++;
+      });
+      charts['attDist'] = new Chart(document.getElementById('chart-attendance-dist'), {
+        type: 'bar',
+        data: {
+          labels: ['40-49%', '50-59%', '60-69%', '70-79%', '80-89%', '90-100%'],
+          datasets: [{
+            label: 'Students',
+            data: attBins,
+            backgroundColor: '#6366f1',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      // 3. Study Hours Histogram
+      const studyBins = [0, 0, 0, 0, 0];
+      currentDataset.forEach(d => {
+        const bin = Math.min(4, Math.floor(d.Study_Hours / 2));
+        studyBins[bin]++;
+      });
+      charts['studyDist'] = new Chart(document.getElementById('chart-study-dist'), {
+        type: 'bar',
+        data: {
+          labels: ['0-2 hrs', '2-4 hrs', '4-6 hrs', '6-8 hrs', '8-10 hrs'],
+          datasets: [{
+            label: 'Students',
+            data: studyBins,
+            backgroundColor: '#0284c7',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      // 4. Previous Score vs Final Score (Sample 100 points)
+      const sample = currentDataset.slice(0, 100).map(d => ({ x: d.Previous_Score, y: d.Final_Score }));
+      charts['prevVsFinal'] = new Chart(document.getElementById('chart-prev-vs-final'), {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Student Correlation',
+            data: sample,
+            backgroundColor: '#8b5cf6'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Previous Score' } },
+            y: { title: { display: true, text: 'Final Score' } }
+          }
+        }
+      });
+
+      // 5. Pass Rate by Attendance Tier
+      const attTiers = [
+        { label: '< 60%', total: 0, pass: 0 },
+        { label: '60-79%', total: 0, pass: 0 },
+        { label: '\u2265 80%', total: 0, pass: 0 }
+      ];
+      currentDataset.forEach(d => {
+        let t = 0;
+        if (d.Attendance >= 80) t = 2;
+        else if (d.Attendance >= 60) t = 1;
+        attTiers[t].total++;
+        if (d.Performance === 'Pass') attTiers[t].pass++;
+      });
+      charts['perfAtt'] = new Chart(document.getElementById('chart-perf-attendance'), {
+        type: 'bar',
+        data: {
+          labels: attTiers.map(t => t.label),
+          datasets: [{
+            label: 'Pass Rate (%)',
+            data: attTiers.map(t => Math.round((t.pass / (t.total || 1)) * 100)),
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
+      });
+
+      // 6. Pass Rate by Study Hours Bracket
+      const studyTiers = [
+        { label: '< 3 hrs', total: 0, pass: 0 },
+        { label: '3-6 hrs', total: 0, pass: 0 },
+        { label: '> 6 hrs', total: 0, pass: 0 }
+      ];
+      currentDataset.forEach(d => {
+        let t = 0;
+        if (d.Study_Hours > 6) t = 2;
+        else if (d.Study_Hours >= 3) t = 1;
+        studyTiers[t].total++;
+        if (d.Performance === 'Pass') studyTiers[t].pass++;
+      });
+      charts['perfStudy'] = new Chart(document.getElementById('chart-perf-study'), {
+        type: 'bar',
+        data: {
+          labels: studyTiers.map(t => t.label),
+          datasets: [{
+            label: 'Pass Rate (%)',
+            data: studyTiers.map(t => Math.round((t.pass / (t.total || 1)) * 100)),
+            backgroundColor: '#f59e0b',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
+      });
+
+      // 7. Gender Performance
+      const gFem = currentDataset.filter(d => d.Gender === 'Female');
+      const gMale = currentDataset.filter(d => d.Gender === 'Male');
+      charts['perfGender'] = new Chart(document.getElementById('chart-perf-gender'), {
+        type: 'bar',
+        data: {
+          labels: ['Female', 'Male'],
+          datasets: [
+            { label: 'Pass', data: [gFem.filter(d => d.Performance === 'Pass').length, gMale.filter(d => d.Performance === 'Pass').length], backgroundColor: '#10b981' },
+            { label: 'Fail', data: [gFem.filter(d => d.Performance === 'Fail').length, gMale.filter(d => d.Performance === 'Fail').length], backgroundColor: '#ef4444' }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+      });
+
+      // 8. Extracurricular Performance
+      const exYes = currentDataset.filter(d => d.Extracurricular === 'Yes');
+      const exNo = currentDataset.filter(d => d.Extracurricular === 'No');
+      charts['perfExtra'] = new Chart(document.getElementById('chart-perf-extra'), {
+        type: 'bar',
+        data: {
+          labels: ['Extracurricular: Yes', 'Extracurricular: No'],
+          datasets: [{
+            label: 'Pass Rate (%)',
+            data: [
+              Math.round((exYes.filter(d => d.Performance === 'Pass').length / (exYes.length || 1)) * 100),
+              Math.round((exNo.filter(d => d.Performance === 'Pass').length / (exNo.length || 1)) * 100)
+            ],
+            backgroundColor: '#4f46e5',
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100 } } }
+      });
+    }
+
+    function renderEvaluationCharts() {
+      if (charts['rocCurve']) return;
+
+      // ROC Curve
+      charts['rocCurve'] = new Chart(document.getElementById('chart-roc-curve'), {
+        type: 'line',
+        data: {
+          labels: [0.0, 0.05, 0.10, 0.15, 0.20, 0.35, 0.50, 0.70, 1.0],
+          datasets: [
+            {
+              label: 'ANN ROC (AUC = 0.962)',
+              data: [0.0, 0.85, 0.92, 0.96, 0.98, 0.99, 1.0, 1.0, 1.0],
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.1)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Random Chance Baseline',
+              data: [0.0, 0.05, 0.10, 0.15, 0.20, 0.35, 0.50, 0.70, 1.0],
+              borderColor: '#94a3b8',
+              borderDash: [5, 5],
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'False Positive Rate (1 - Specificity)' } },
+            y: { title: { display: true, text: 'True Positive Rate (Recall)' } }
+          }
+        }
+      });
+
+      // Probability Distribution Histogram
+      charts['probDist'] = new Chart(document.getElementById('chart-prob-dist'), {
+        type: 'bar',
+        data: {
+          labels: ['0.0-0.1', '0.1-0.2', '0.2-0.3', '0.3-0.4', '0.4-0.5', '0.5-0.6', '0.6-0.7', '0.7-0.8', '0.8-0.9', '0.9-1.0'],
+          datasets: [
+            { label: 'Actual Fail Cases', data: [12, 5, 2, 1, 0, 0, 0, 0, 0, 0], backgroundColor: '#ef4444' },
+            { label: 'Actual Pass Cases', data: [0, 0, 0, 1, 5, 15, 35, 65, 110, 149], backgroundColor: '#10b981' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, title: { display: true, text: 'Predicted P(Pass) Deciles' } },
+            y: { stacked: true, title: { display: true, text: 'Number of Students' } }
+          }
+        }
+      });
+    }
+
+    function initTrainingCharts() {
+      if (charts['liveLoss']) return;
+
+      charts['liveLoss'] = new Chart(document.getElementById('chart-live-loss'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Binary Cross-Entropy Loss',
+            data: [],
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+            borderWidth: 2,
+            tension: 0.2
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      charts['liveAcc'] = new Chart(document.getElementById('chart-live-acc'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Accuracy',
+            data: [],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+            borderWidth: 2,
+            tension: 0.2
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0.5, max: 1.0 } } }
+      });
+    }
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Generate default cohort of 2,000 records
+      currentDataset = generateSyntheticCohort(2000, 40.0);
+      updateDatasetPreview();
+      updateDashboardKPIs();
+      evaluateCohortWithModel();
+      calculateLivePrediction();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "accuracy": 0.9675,
+  "precision": 0.9816272965879265,
+  "recall": 0.9842105263157894,
+  "f1": 0.9829172141918529,
+  "roc_auc": 0.9622368421052632,
+  "confusion_matrix": {
+    "tn": 13,
+    "fp": 7,
+    "fn": 6,
+    "tp": 374
+  },
+  "threshold": 0.5,
+  "n_test": 400,
+  "n_pass_actual": 380,
+  "n_fail_actual": 20,
+  "n_pass_pred": 381,
+  "n_fail_pred": 19,
+  "n_train": 1600
+}

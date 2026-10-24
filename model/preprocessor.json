@@ -1,0 +1,67 @@
+{
+  "scaler": {
+    "means": [
+      20.503,
+      69.385515,
+      4.931895000000001,
+      60.34049,
+      60.4408,
+      49.061564999999995,
+      6.549300000000001
+    ],
+    "stds": [
+      2.8844672082618255,
+      17.163227578903616,
+      2.8588910241418715,
+      23.14505366626976,
+      23.127319494777314,
+      28.42655182615608,
+      2.008968388749185
+    ]
+  },
+  "categories": {
+    "Gender": [
+      "Female",
+      "Male"
+    ],
+    "Internet_Access": [
+      "No",
+      "Yes"
+    ],
+    "Extracurricular": [
+      "No",
+      "Yes"
+    ]
+  },
+  "numerical_features": [
+    "Age",
+    "Attendance",
+    "Study_Hours",
+    "Previous_Score",
+    "Assignment_Score",
+    "Participation",
+    "Sleep_Hours"
+  ],
+  "categorical_features": [
+    "Gender",
+    "Internet_Access",
+    "Extracurricular"
+  ],
+  "feature_names": [
+    "Age",
+    "Attendance",
+    "Study_Hours",
+    "Previous_Score",
+    "Assignment_Score",
+    "Participation",
+    "Sleep_Hours",
+    "Gender_Female",
+    "Gender_Male",
+    "Internet_Access_No",
+    "Internet_Access_Yes",
+    "Extracurricular_No",
+    "Extracurricular_Yes"
+  ],
+  "n_features": 13,
+  "passing_score": 40.0
+}
