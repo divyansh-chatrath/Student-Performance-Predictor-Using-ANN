@@ -141,6 +141,12 @@ $$\mathbf{W}_t = \mathbf{W}_{t-1} - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \ha
 
 ---
 
-## 📜 License & Citation
+## 📄 License
 
-Distributed under the MIT License. Developed for academic submission and educational research.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**divyansh**
+- GitHub: [@divyansh-chatrath](https://github.com/divyansh-chatrath)
+- Repository: [SMS-Spam-Detector]((https://github.com/divyansh-chatrath/SMS-Spam-Detector))
