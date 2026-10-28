@@ -5,7 +5,7 @@
 [![Chart.js](https://img.shields.io/badge/Chart.js-4.4.0-brightgreen.svg)](https://www.chartjs.org/)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.7.1-orange.svg)](https://scikit-learn.org/)
-[![MBA Data Science](https://img.shields.io/badge/Specialization-MBA%20Data%20Science%20%26%20AI-purple.svg)]()
+[![MBA Data Science](https://img.shields.io/badge/Specialization-MBA%20Data%20Science%20%26%20AI-purple.svg)]() 
 
 > **Interactive Deep Learning Dashboard for Student Academic Performance Prediction and Risk Assessment**  
 > Built for academic demonstration, research presentation, and viva voce examination in Master of Business Administration (MBA) Data Science & Artificial Intelligence.
