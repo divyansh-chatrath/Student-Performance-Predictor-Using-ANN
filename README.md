@@ -147,6 +147,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**divyansh**
+**Divyansh**
 - GitHub: [@divyansh-chatrath](https://github.com/divyansh-chatrath)
-- Repository: [SMS-Spam-Detector]((https://github.com/divyansh-chatrath/SMS-Spam-Detector))
+- Repository: [SMS-Spam-Detector](https://github.com/divyansh-chatrath/Student-Performance-Predictor-Using-ANN)
